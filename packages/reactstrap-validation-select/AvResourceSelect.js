@@ -238,7 +238,6 @@ class AvResourceSelect extends Component {
         ...this.props.parameters,
       };
       _cacheUniq = watchParams.map(watchParam => params[watchParam]).join(',');
-      this.setState({ numTimesResourceCalled: 0 });
     }
 
     return (
