@@ -9,7 +9,7 @@ import AvSelectField from './AvSelectField';
 class AvResourceSelect extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = { numTimesResourceCalled: 0 };
     this.state.previousOptions = [];
   }
 
@@ -183,6 +183,25 @@ class AvResourceSelect extends Component {
         }
         this.setState({ previousOptions: items });
 
+        /*
+         * We only want to default to the first option under the following conditions:
+         * 1. defaultToOnlyOption is true
+         * 2. There is only one option
+         * 3. waitUntilFocused is false - Otherwise we would be defaulting the value when the user has the dropdown open to select a value
+         * 4. numTimesResourceCalled is 0 - This means this is the first time calling the resource. Again, otherwise we would be defaulting the value when the user has the dropdown open to select a value - keeping in mind numTimesResourceCalled resets to 0 any time cacheUniq changes
+         */
+        if (
+          this.props.defaultToOnlyOption &&
+          items.length === 1 &&
+          !this.props.waitUntilFocused &&
+          this.state.numTimesResourceCalled === 0
+        ) {
+          this.select.current.props.onChange(items[0]);
+        }
+        this.setState(state => ({
+          numTimesResourceCalled: state.numTimesResourceCalled + 1,
+        }));
+
         return {
           options: items,
           hasMore,
@@ -219,6 +238,7 @@ class AvResourceSelect extends Component {
         ...this.props.parameters,
       };
       _cacheUniq = watchParams.map(watchParam => params[watchParam]).join(',');
+      this.setState({ numTimesResourceCalled: 0 });
     }
 
     return (
@@ -283,6 +303,7 @@ AvResourceSelect.propTypes = {
   minCharsToSearch: PropTypes.number,
   onFocus: PropTypes.func,
   waitUntilFocused: PropTypes.bool,
+  defaultToOnlyOption: PropTypes.bool,
 };
 
 AvResourceSelect.defaultProps = {
